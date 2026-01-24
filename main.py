@@ -289,27 +289,7 @@ growth_data = {
         }
     }
 }
-        },
-        "Female": {
-            10: {"mean": 30.1, "sd": 4.9},
-            11: {"mean": 29.8, "sd": 4.7},
-            12: {"mean": 29.4, "sd": 4.5}
-        }
-    },
-    "SNB": {
-        "Male": {
-            10: {"mean": 76.2, "sd": 2.5},
-            11: {"mean": 76.8, "sd": 2.4},
-            12: {"mean": 77.4, "sd": 2.3}
-        },
-        "Female": {
-            10: {"mean": 75.9, "sd": 2.4},
-            11: {"mean": 76.4, "sd": 2.3},
-            12: {"mean": 77.0, "sd": 2.2}
-        }
-    }
-}
-
+    
 # Helper: linear interpolation between ages
 
 def interpolate(param, sex, age):
