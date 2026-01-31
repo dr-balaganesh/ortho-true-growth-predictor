@@ -4,7 +4,6 @@
 
 import streamlit as st
 import pandas as pd
-from fpdf import FPDF
 
 # -----------------------------
 # PAGE CONFIG
@@ -69,7 +68,7 @@ for p in selected_params:
     input_data[p] = {"pre": pre, "post": post}
 
 # -----------------------------
-# 4. FULL GROWTH REFERENCE DATA (MEAN, SD)
+# 4. FULL GROWTH REFERENCE DATA
 # -----------------------------
 growth_data = {
     "FMA": {
@@ -131,25 +130,25 @@ growth_data = {
 }
 
 # -----------------------------
-# HELPER: INTERPOLATION
+# INTERPOLATION
 # -----------------------------
 def interpolate(param, sex, age):
-    ages = sorted(growth_data[param][sex].keys())
+    ages = sorted(growth_data[param][sex])
     if age <= ages[0]:
         return growth_data[param][sex][ages[0]]
     if age >= ages[-1]:
         return growth_data[param][sex][ages[-1]]
 
-    for i in range(len(ages) - 1):
-        if ages[i] <= age <= ages[i + 1]:
-            a1, a2 = ages[i], ages[i + 1]
+    for i in range(len(ages)-1):
+        if ages[i] <= age <= ages[i+1]:
+            a1, a2 = ages[i], ages[i+1]
             m1, s1 = growth_data[param][sex][a1]
             m2, s2 = growth_data[param][sex][a2]
-            r = (age - a1) / (a2 - a1)
-            return (m1 + r * (m2 - m1), s1 + r * (s2 - s1))
+            r = (age-a1)/(a2-a1)
+            return (m1+r*(m2-m1), s1+r*(s2-s1))
 
 # -----------------------------
-# 5. COMPUTATION
+# COMPUTATION
 # -----------------------------
 results = []
 
@@ -163,60 +162,52 @@ for p in selected_params:
     mean_pre, sd_pre = interpolate(p, sex, age)
     mean_post, sd_post = interpolate(p, sex, age_end)
 
-    z = (pre - mean_pre) / sd_pre if sd_pre != 0 else 0
-    predicted_post = mean_post + z * sd_post
-
-    predicted_growth = predicted_post - pre
-    observed_change = post - pre
-    treatment_effect = observed_change - predicted_growth
+    z = (pre-mean_pre)/sd_pre if sd_pre else 0
+    predicted_post = mean_post + z*sd_post
 
     results.append({
         "Parameter": p,
-        "Pre": round(pre, 2),
-        "Std Mean Pre": round(mean_pre, 2),
-        "Std SD Pre": round(sd_pre, 2),
-        "Post": round(post, 2),
-        "Std Predicted Post": round(predicted_post, 2),
-        "Predicted Growth": round(predicted_growth, 2),
-        "Observed Change": round(observed_change, 2),
-        "Treatment Effect": round(treatment_effect, 2)
+        "Pre": round(pre,2),
+        "Std Mean Pre": round(mean_pre,2),
+        "Std SD Pre": round(sd_pre,2),
+        "Post": round(post,2),
+        "Std Predicted Post": round(predicted_post,2),
+        "Predicted Growth": round(predicted_post-pre,2),
+        "Observed Change": round(post-pre,2),
+        "Treatment Effect": round((post-pre)-(predicted_post-pre),2)
     })
 
 # -----------------------------
-# 6. RESULTS
+# RESULTS
 # -----------------------------
 st.header("Results")
-
 if results:
     df = pd.DataFrame(results)
     st.dataframe(df, use_container_width=True)
 else:
-    st.info("Select parameters and enter pre and post values.")
+    st.info("Enter values to see results.")
 
 # -----------------------------
-# 7. PDF (SAFE)
+# PDF (BUTTON SCOPED - SAFE)
 # -----------------------------
-def safe_text(t):
-    return t.encode("latin-1", "replace").decode("latin-1")
+if results and st.button("Generate PDF"):
+    from fpdf import FPDF
 
-def generate_pdf(df):
+    def safe(t): 
+        return t.encode("latin-1","replace").decode("latin-1")
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=10)
 
-    pdf.cell(0, 8, safe_text("Growth Adjusted Cephalometric Outcome Report"), ln=True)
+    pdf.cell(0,8,safe("Growth Adjusted Cephalometric Outcome Report"),ln=True)
+    pdf.ln(4)
+    pdf.cell(0,6,safe(f"Age: {age} | Sex: {sex} | Duration: {round(duration_years,2)} years"),ln=True)
     pdf.ln(4)
 
-    pdf.cell(0, 6, safe_text(f"Age: {age} | Sex: {sex} | Duration: {round(duration_years,2)} years"), ln=True)
-    pdf.ln(4)
+    for _, r in df.iterrows():
+        pdf.multi_cell(0,6,safe(str(r.to_dict())))
 
-    for _, row in df.iterrows():
-        pdf.multi_cell(0, 6, safe_text(str(row.to_dict())))
-
-    return pdf
-
-if results and st.button("Generate PDF"):
-    pdf = generate_pdf(df)
     st.download_button(
         "Download PDF",
         pdf.output(dest="S").encode("latin-1"),
