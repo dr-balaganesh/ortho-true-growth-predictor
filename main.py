@@ -11,7 +11,9 @@ from fpdf import FPDF
 # -----------------------------
 st.set_page_config(page_title="Cephalometric Outcome Predictor", layout="wide")
 st.title("Growth-Adjusted Cephalometric Outcome Predictor")
-st.caption("Numeric separation of growth and treatment effects using age- and sex-matched reference standards")
+st.caption(
+    "Numeric separation of growth and treatment effects using age- and sex-matched reference standards"
+)
 
 # -----------------------------
 # 1. PATIENT INPUTS
@@ -28,7 +30,7 @@ with col3:
 
 duration_unit = st.selectbox("Duration unit", ["Years", "Months"])
 duration_years = duration / 12 if duration_unit == "Months" else duration
-age_end = min(age + duration_years, 16)  # growth capped at 16
+age_end = min(age + duration_years, 16)
 
 # -----------------------------
 # 2. PARAMETER SELECTION
@@ -36,8 +38,8 @@ age_end = min(age + duration_years, 16)  # growth capped at 16
 st.header("Select Cephalometric Parameters")
 
 parameters = {
-    "FMA": "°",
-    "SNB": "°",
+    "FMA": "deg",
+    "SNB": "deg",
     "Co-Go": "mm",
     "Go-Pg": "mm",
     "Co-Pg": "mm",
@@ -67,10 +69,8 @@ for p in selected_params:
     input_data[p] = {"pre": pre, "post": post}
 
 # -----------------------------
-# 4. GROWTH REFERENCE DATA (MEAN + SD)
+# 4. FULL GROWTH REFERENCE DATA (MEAN, SD)
 # -----------------------------
-# (Values taken from your reference images)
-
 growth_data = {
     "FMA": {
         "Male": {6:(29.3,5.9),7:(30.1,5.9),8:(29.4,4.8),9:(29.5,5.5),10:(29.6,5.0),
@@ -87,6 +87,46 @@ growth_data = {
         "Female": {6:(76.0,3.5),7:(76.3,3.1),8:(76.7,3.3),9:(76.5,3.4),10:(76.7,3.5),
                    11:(77.3,3.9),12:(77.7,3.4),13:(77.5,3.9),14:(77.9,3.8),
                    15:(78.9,3.9),16:(79.2,2.3)}
+    },
+    "Co-Go": {
+        "Male": {6:(48.7,3.5),7:(49.1,3.4),8:(51.3,3.1),9:(52.8,3.3),10:(54.0,3.5),
+                 11:(55.8,3.5),12:(57.2,3.9),13:(59.4,4.2),14:(61.6,4.4),
+                 15:(62.7,4.1),16:(66.1,4.1)},
+        "Female": {6:(46.5,2.9),7:(47.7,2.8),8:(49.1,2.9),9:(50.8,2.9),10:(51.5,2.7),
+                   11:(52.4,2.8),12:(54.6,3.9),13:(55.1,3.8),14:(56.8,3.5),
+                   15:(58.9,3.4),16:(60.5,2.4)}
+    },
+    "Go-Pg": {
+        "Male": {6:(66.1,2.8),7:(68.9,3.0),8:(71.2,2.9),9:(73.0,2.7),10:(75.1,2.8),
+                 11:(77.1,3.2),12:(78.5,3.4),13:(80.4,3.7),14:(82.8,4.0),
+                 15:(84.3,4.1),16:(86.5,3.7)},
+        "Female": {6:(66.1,4.2),7:(67.9,3.9),8:(70.4,4.2),9:(71.7,4.5),10:(74.0,4.2),
+                   11:(75.7,4.2),12:(76.6,3.8),13:(78.4,4.0),14:(79.4,3.7),
+                   15:(80.6,3.9),16:(81.5,3.8)}
+    },
+    "Co-Pg": {
+        "Male": {6:(101.8,4.4),7:(104.1,3.5),8:(107.8,3.8),9:(109.9,4.0),10:(112.8,4.0),
+                 11:(115.8,4.5),12:(117.9,4.8),13:(121.0,5.5),14:(124.1,5.9),
+                 15:(126.3,5.1),16:(130.9,5.7)},
+        "Female": {6:(98.9,4.3),7:(101.6,4.6),8:(104.5,5.0),9:(106.7,5.2),10:(109.5,4.9),
+                   11:(111.6,4.9),12:(114.0,4.6),13:(116.1,3.9),14:(118.1,3.9),
+                   15:(120.1,5.1),16:(121.4,3.9)}
+    },
+    "ANS-Me": {
+        "Male": {6:(63.7,4.0),7:(65.5,4.4),8:(66.6,4.4),9:(67.3,4.3),10:(68.9,4.9),
+                 11:(70.3,4.8),12:(71.1,5.1),13:(72.0,5.6),14:(74.3,5.8),
+                 15:(76.7,6.4),16:(79.5,6.2)},
+        "Female": {6:(61.6,3.9),7:(63.6,4.1),8:(63.5,4.2),9:(64.1,4.6),10:(65.3,4.9),
+                   11:(65.8,4.6),12:(66.5,3.8),13:(68.1,4.5),14:(69.1,5.0),
+                   15:(69.5,5.3),16:(69.3,5.2)}
+    },
+    "ANS-PNS": {
+        "Male": {6:(50.2,2.2),7:(51.4,2.5),8:(52.1,2.9),9:(53.3,2.9),10:(54.4,2.6),
+                 11:(56.0,2.4),12:(56.7,3.1),13:(57.8,3.0),14:(58.7,3.6),
+                 15:(59.6,3.6),16:(61.6,3.7)},
+        "Female": {6:(48.9,2.3),7:(50.5,2.9),8:(51.2,2.5),9:(51.2,3.2),10:(53.1,3.1),
+                   11:(53.9,4.0),12:(54.1,3.2),13:(55.3,3.0),14:(56.7,2.9),
+                   15:(57.1,2.7),16:(57.0,4.4)}
     }
 }
 
@@ -96,11 +136,9 @@ growth_data = {
 def interpolate(param, sex, age):
     ages = sorted(growth_data[param][sex].keys())
     if age <= ages[0]:
-        m, s = growth_data[param][sex][ages[0]]
-        return m, s
+        return growth_data[param][sex][ages[0]]
     if age >= ages[-1]:
-        m, s = growth_data[param][sex][ages[-1]]
-        return m, s
+        return growth_data[param][sex][ages[-1]]
 
     for i in range(len(ages) - 1):
         if ages[i] <= age <= ages[i + 1]:
@@ -108,17 +146,14 @@ def interpolate(param, sex, age):
             m1, s1 = growth_data[param][sex][a1]
             m2, s2 = growth_data[param][sex][a2]
             r = (age - a1) / (a2 - a1)
-            return m1 + r * (m2 - m1), s1 + r * (s2 - s1)
+            return (m1 + r * (m2 - m1), s1 + r * (s2 - s1))
 
 # -----------------------------
-# 5. COMPUTATION (Z-SCORE BASED)
+# 5. COMPUTATION
 # -----------------------------
 results = []
 
 for p in selected_params:
-    if p not in growth_data:
-        continue
-
     pre = input_data[p]["pre"]
     post = input_data[p]["post"]
 
@@ -138,17 +173,17 @@ for p in selected_params:
     results.append({
         "Parameter": p,
         "Pre": round(pre, 2),
-        "Std Mean (Pre)": round(mean_pre, 2),
-        "Std SD (Pre)": round(sd_pre, 2),
+        "Std Mean Pre": round(mean_pre, 2),
+        "Std SD Pre": round(sd_pre, 2),
         "Post": round(post, 2),
-        "Std Predicted (Post)": round(predicted_post, 2),
-        "Predicted Growth Δ": round(predicted_growth, 2),
-        "Observed Δ": round(observed_change, 2),
-        "Treatment Δ": round(treatment_effect, 2)
+        "Std Predicted Post": round(predicted_post, 2),
+        "Predicted Growth": round(predicted_growth, 2),
+        "Observed Change": round(observed_change, 2),
+        "Treatment Effect": round(treatment_effect, 2)
     })
 
 # -----------------------------
-# 6. RESULTS DISPLAY
+# 6. RESULTS
 # -----------------------------
 st.header("Results")
 
@@ -156,40 +191,35 @@ if results:
     df = pd.DataFrame(results)
     st.dataframe(df, use_container_width=True)
 else:
-    st.info("Select parameters and enter pre- and post-treatment values.")
+    st.info("Select parameters and enter pre and post values.")
 
 # -----------------------------
-# 7. PDF GENERATION
+# 7. PDF (SAFE)
 # -----------------------------
+def safe_text(t):
+    return t.encode("latin-1", "replace").decode("latin-1")
+
 def generate_pdf(df):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=10)
 
-    pdf.cell(0, 8, "Growth-Adjusted Cephalometric Outcome Report", ln=True)
+    pdf.cell(0, 8, safe_text("Growth Adjusted Cephalometric Outcome Report"), ln=True)
     pdf.ln(4)
 
-    pdf.cell(0, 6, f"Age: {age} years | Sex: {sex}", ln=True)
-    pdf.cell(0, 6, f"Treatment duration: {round(duration_years,2)} years", ln=True)
+    pdf.cell(0, 6, safe_text(f"Age: {age} | Sex: {sex} | Duration: {round(duration_years,2)} years"), ln=True)
     pdf.ln(4)
 
     for _, row in df.iterrows():
-        pdf.multi_cell(0, 6, str(row.to_dict()))
-
-    pdf.ln(4)
-    pdf.multi_cell(0, 6,
-        "Predicted growth is calculated using Z-score–based longitudinal normalization "
-        "from age- and sex-matched cephalometric reference standards."
-    )
+        pdf.multi_cell(0, 6, safe_text(str(row.to_dict())))
 
     return pdf
 
-if results:
-    if st.button("Generate PDF"):
-        pdf = generate_pdf(df)
-        st.download_button(
-            "Download PDF",
-            pdf.output(dest="S").encode("latin-1"),
-            file_name="cephalometric_growth_report.pdf",
-            mime="application/pdf"
-        )
+if results and st.button("Generate PDF"):
+    pdf = generate_pdf(df)
+    st.download_button(
+        "Download PDF",
+        pdf.output(dest="S").encode("latin-1"),
+        file_name="cephalometric_growth_report.pdf",
+        mime="application/pdf"
+    )
