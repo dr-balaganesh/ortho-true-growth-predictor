@@ -185,14 +185,16 @@ for p in selected_params:
     results.append({
         "Parameter": p,
         "Pre Value": round(pre,2),
+        "Post Value": round(post,2),
         "Pooled Mean": round(pooled_mean,2),
         "Pooled SD": round(pooled_sd,2),
         "Z Score": round(z,2),
+        "Observed Change": round(observed_change,2),
         "Predicted Value": round(predicted_value,2),
         "Expected Growth": round(expected_growth,2),
-        "Observed Change": round(observed_change,2),
         "Net Treatment Effect": round(net_treatment_effect,2)
     })
+
 
 # -----------------------------
 # RESULTS
