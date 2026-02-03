@@ -188,7 +188,7 @@ for p in selected_params:
         "Pooled Mean Data": round(pooled_mean,2),
         "Pooled SD Data": round(pooled_sd,2),
         "Z Score": round(z,2),
-        "Post Value": round(post,2)
+        "Post Value": round(post,2),
         "Observed Change": round(observed_change,2),
         "Predicted Value": round(predicted_value,2),
         "Expected Growth": round(expected_growth,2),
