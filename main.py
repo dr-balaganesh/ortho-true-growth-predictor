@@ -11,7 +11,7 @@ import pandas as pd
 st.set_page_config(page_title="Cephalometric Outcome Predictor", layout="wide")
 st.title("Growth-Adjusted Cephalometric Outcome Predictor")
 st.caption(
-    "Numeric separation of growth and treatment effects using age- and sex-matched reference standards"
+    "Numeric separation of growth and treatment effects using pooled reference standards and age-adjusted prediction"
 )
 
 # -----------------------------
@@ -68,7 +68,7 @@ for p in selected_params:
     input_data[p] = {"pre": pre, "post": post}
 
 # -----------------------------
-# 4. FULL GROWTH REFERENCE DATA
+# 4. GROWTH REFERENCE DATA
 # -----------------------------
 growth_data = {
     "FMA": {
@@ -138,14 +138,27 @@ def interpolate(param, sex, age):
         return growth_data[param][sex][ages[0]]
     if age >= ages[-1]:
         return growth_data[param][sex][ages[-1]]
-
     for i in range(len(ages)-1):
         if ages[i] <= age <= ages[i+1]:
             a1, a2 = ages[i], ages[i+1]
             m1, s1 = growth_data[param][sex][a1]
             m2, s2 = growth_data[param][sex][a2]
-            r = (age-a1)/(a2-a1)
-            return (m1+r*(m2-m1), s1+r*(s2-s1))
+            r = (age - a1) / (a2 - a1)
+            return (m1 + r*(m2-m1), s1 + r*(s2-s1))
+
+# -----------------------------
+# POOLED STATS
+# -----------------------------
+def pooled_stats(param, sex):
+    means = []
+    sds = []
+    for age in growth_data[param][sex]:
+        m, s = growth_data[param][sex][age]
+        means.append(m)
+        sds.append(s)
+    pooled_mean = sum(means) / len(means)
+    pooled_sd = (sum([s**2 for s in sds]) / len(sds))**0.5
+    return pooled_mean, pooled_sd
 
 # -----------------------------
 # COMPUTATION
@@ -159,22 +172,26 @@ for p in selected_params:
     if pre == 0 or post == 0:
         continue
 
-    mean_pre, sd_pre = interpolate(p, sex, age)
-    mean_post, sd_post = interpolate(p, sex, age_end)
+    pooled_mean, pooled_sd = pooled_stats(p, sex)
+    z = (pre - pooled_mean) / pooled_sd if pooled_sd else 0
 
-    z = (pre-mean_pre)/sd_pre if sd_pre else 0
-    predicted_post = mean_post + z*sd_post
+    mean_post, sd_post = interpolate(p, sex, age_end)
+    predicted_value = mean_post + z * sd_post
+
+    expected_growth = predicted_value - pre
+    observed_change = post - pre
+    net_treatment_effect = observed_change - expected_growth
 
     results.append({
         "Parameter": p,
-        "Pre": round(pre,2),
-        "Std Mean Pre": round(mean_pre,2),
-        "Std SD Pre": round(sd_pre,2),
-        "Post": round(post,2),
-        "Std Predicted Post": round(predicted_post,2),
-        "Predicted Growth": round(predicted_post-pre,2),
-        "Observed Change": round(post-pre,2),
-        "Treatment Effect": round((post-pre)-(predicted_post-pre),2)
+        "Pre Value": round(pre,2),
+        "Pooled Mean": round(pooled_mean,2),
+        "Pooled SD": round(pooled_sd,2),
+        "Z Score": round(z,2),
+        "Predicted Value": round(predicted_value,2),
+        "Expected Growth": round(expected_growth,2),
+        "Observed Change": round(observed_change,2),
+        "Net Treatment Effect": round(net_treatment_effect,2)
     })
 
 # -----------------------------
@@ -188,19 +205,19 @@ else:
     st.info("Enter values to see results.")
 
 # -----------------------------
-# PDF (BUTTON SCOPED - SAFE)
+# PDF GENERATION
 # -----------------------------
 if results and st.button("Generate PDF"):
     from fpdf import FPDF
 
-    def safe(t): 
-        return t.encode("latin-1","replace").decode("latin-1")
+    def safe(t):
+        return t.encode("latin-1", "replace").decode("latin-1")
 
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=10)
 
-    pdf.cell(0,8,safe("Growth Adjusted Cephalometric Outcome Report"),ln=True)
+    pdf.cell(0,8,safe("Growth-Adjusted Cephalometric Outcome Report"),ln=True)
     pdf.ln(4)
     pdf.cell(0,6,safe(f"Age: {age} | Sex: {sex} | Duration: {round(duration_years,2)} years"),ln=True)
     pdf.ln(4)
